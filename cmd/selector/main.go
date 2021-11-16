@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -16,31 +14,35 @@ var (
 		"Bravo",
 	}
 
-	contentOne = []string{"Alpha one", "Alpha two", "Alpha three"}
-	contentTwo = []string{"Bravo one", "Bravo two", "Bravo three"}
+	contentOnes = []string{"Alpha one", "Alpha two", "Alpha three"}
+	contentTwos = []string{"Bravo one", "Bravo two", "Bravo three"}
 )
 
-func selectorWidget(binder binding.StringList) *widget.Select {
-
-	sel := widget.NewSelect(selections, func(value string) {
+func selectorWidget(binder binding.String) *widget.Select {
+	return widget.NewSelect(selections, func(value string) {
 		if value == selections[0] {
-			binder.Set(contentOne)
+			binder.Set(value)
 		} else {
-			binder.Set(contentTwo)
+			binder.Set(value)
 		}
 	})
-
-	return sel
 }
 
-func listenerCallback(binder binding.StringList, labelList *fyne.Container) func() {
+func listenerCallback(binder binding.String, contentPanel *fyne.Container) func() {
 	return func() {
-		dataItems, err := binder.Get()
-		fmt.Println(dataItems)
+		selection, err := binder.Get()
 		if err == nil {
-			for _, dataItem := range dataItems {
-				label := widget.NewLabel(dataItem)
-				labelList.Add(label)
+			if selection == selections[0] {
+				for _, contentOne := range contentOnes {
+					label := widget.NewLabel(contentOne)
+					contentPanel.Add(label)
+				}
+			} else if selection == selections[1] {
+				for _, contentTwo := range contentTwos {
+					contentPanel.Refresh()
+					label := widget.NewLabel(contentTwo)
+					contentPanel.Add(label)
+				}
 			}
 		}
 	}
@@ -53,7 +55,7 @@ func main() {
 	myWindow := myApp.NewWindow(("Selector example"))
 
 	// Data binder
-	binder := binding.NewStringList()
+	binder := binding.NewString()
 
 	// Selector panel
 	selWidget := selectorWidget(binder)
@@ -64,9 +66,7 @@ func main() {
 
 	// Content panel
 	contentPanel := container.NewVBox()
-	cb := listenerCallback(binder, contentPanel)
-	listener := binding.NewDataListener(cb)
-	binder.AddListener(listener)
+	binder.AddListener(binding.NewDataListener(listenerCallback(binder, contentPanel)))
 
 	// Main panel
 	mainPanel := container.NewVBox()
