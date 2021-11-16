@@ -20,7 +20,7 @@ var (
 	contentTwo = []string{"Bravo one", "Bravo two", "Bravo three"}
 )
 
-func selectorContainer(binder binding.StringList) *fyne.Container {
+func selectorWidget(binder binding.StringList) *widget.Select {
 
 	sel := widget.NewSelect(selections, func(value string) {
 		if value == selections[0] {
@@ -30,16 +30,19 @@ func selectorContainer(binder binding.StringList) *fyne.Container {
 		}
 	})
 
-	cont := container.NewHBox()
-	cont.Resize(fyne.NewSize(200, 100))
-	cont.Add(sel)
-	return cont
+	return sel
 }
 
-func content(binder binding.StringList) func() {
+func listenerCallback(binder binding.StringList, labelList *fyne.Container) func() {
 	return func() {
-		content, err := binder.Get()
-		fmt.Println(content, err)
+		dataItems, err := binder.Get()
+		fmt.Println(dataItems)
+		if err == nil {
+			for _, dataItem := range dataItems {
+				label := widget.NewLabel(dataItem)
+				labelList.Add(label)
+			}
+		}
 	}
 }
 
@@ -52,20 +55,25 @@ func main() {
 	// Data binder
 	binder := binding.NewStringList()
 
-	// Content
-	contentPanel := container.NewVBox()
+	// Selector panel
+	selWidget := selectorWidget(binder)
+	selLabelWidget := widget.NewLabel("Please select: ")
+	selPanel := container.NewHBox()
+	selPanel.Add(selLabelWidget)
+	selPanel.Add(selWidget)
 
-	// Listener
-	listener := binding.NewDataListener(content(binder))
+	// Content panel
+	contentPanel := container.NewVBox()
+	cb := listenerCallback(binder, contentPanel)
+	listener := binding.NewDataListener(cb)
 	binder.AddListener(listener)
 
-	// Main Panel
+	// Main panel
 	mainPanel := container.NewVBox()
-	mainPanel.Add(selectorContainer(binder))
+	mainPanel.Add(selPanel)
 	mainPanel.Add(contentPanel)
 
 	// Windows
-
 	myWindow.SetContent(mainPanel)
 	myWindow.Resize(fyne.NewSize(700, 400))
 	myWindow.ShowAndRun()
