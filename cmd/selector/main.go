@@ -14,35 +14,25 @@ var (
 		"Bravo",
 	}
 
-	contentOnes = []string{"Alpha one", "Alpha two", "Alpha three"}
-	contentTwos = []string{"Bravo one", "Bravo two", "Bravo three"}
+	contents = map[string][]string{"Alpha": {"Alpha one", "Alpha two", "Alpha three"}, "Bravo": {"Bravo one", "Bravo two", "Bravo three"}}
 )
 
 func selectorWidget(binder binding.String) *widget.Select {
 	return widget.NewSelect(selections, func(value string) {
-		if value == selections[0] {
-			binder.Set(value)
-		} else {
-			binder.Set(value)
-		}
+		binder.Set(value)
 	})
 }
 
 func listenerCallback(binder binding.String, contentPanel *fyne.Container) func() {
 	return func() {
 		selection, err := binder.Get()
+		for _, obj := range contentPanel.Objects {
+			contentPanel.Remove(obj)
+		}
 		if err == nil {
-			if selection == selections[0] {
-				for _, contentOne := range contentOnes {
-					label := widget.NewLabel(contentOne)
-					contentPanel.Add(label)
-				}
-			} else if selection == selections[1] {
-				for _, contentTwo := range contentTwos {
-					contentPanel.Refresh()
-					label := widget.NewLabel(contentTwo)
-					contentPanel.Add(label)
-				}
+			for _, content := range contents[selection] {
+				label := widget.NewLabel(content)
+				contentPanel.Add(label)
 			}
 		}
 	}
